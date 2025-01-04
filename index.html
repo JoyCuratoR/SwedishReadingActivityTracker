@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swedish Learning Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #f8c4c4;
+            --secondary: #c4e7f8;
+            --accent: #c4f8d5;
+            --background: #fafafa;
+            --text: #2c3e50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--text);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Swedish Learning Activity Tracker</h1>
+        
+        <div class="card">
+            <form id="activityForm">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="material">Material Type</label>
+                    <select id="material" required>
+                        <option value="story">Short Story</option>
+                        <option value="show">TV Show</option>
+                        <option value="lyrics">Song Lyrics</option>
+                        <option value="article">Article</option>
+                        <option value="book">Book</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="level">CEFR Level</label>
+                    <select id="level" required>
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="B1">B1</option>
+                        <option value="B2">B2</option>
+                        <option value="C1">C1</option>
+                        <option value="C2">C2</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="minutes">Minutes Spent</label>
+                    <input type="number" id="minutes" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="newWords">New Words Learned</label>
+                    <input type="number" id="newWords" min="0" required>
+                </div>
+                <button type="submit">Add Activity</button>
+            </form>
+        </div>
+
+        <div class="button-group">
+            <button id="saveData" class="btn-secondary">Save Data</button>
+            <button id="loadData" class="btn-secondary">Load Data</button>
+            <button id="generateReport" class="btn-accent">Generate Weekly Report</button>
+            <input type="file" id="fileInput" style="display: none" accept=".json">
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <canvas id="levelChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="materialChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="wordsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activities = [];
+        const colors = {
+            pastel: [
+                'rgba(255, 182, 193, 0.6)', // pink
+                'rgba(173, 216, 230, 0.6)', // light blue
+                'rgba(144, 238, 144, 0.6)', // light green
+                'rgba(221, 160, 221, 0.6)', // plum
+                'rgba(255, 218, 185, 0.6)', // peach
+            ]
+        };
+
+        const levelChart = new Chart(
+            document.getElementById('levelChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+                    datasets: [{
+                        label: 'Materials by CEFR Level',
+                        data: [],
+                        backgroundColor: colors.pastel[0]
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Materials'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        const materialChart = new Chart(
+            document.getElementById('materialChart'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: colors.pastel
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Material Types Distribution'
+                        }
+                    }
+                }
+            }
+        );
+
+        const wordsChart = new Chart(
+            document.getElementById('wordsChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'New Words Learned',
+                        data: [],
+                        borderColor: colors.pastel[2],
+                        tension: 0.1,
+                        fill: true,
+                        backgroundColor: colors.pastel[2]
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cumulative Words Learned'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        function updateCharts() {
+            // Update CEFR level chart
+            const levelCounts = {
+                'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
+            };
+            activities.forEach(activity => {
+                levelCounts[activity.level]++;
+            });
+            levelChart.data.datasets[0].data = Object.values(levelCounts);
+            levelChart.update();
+
+            // Update material type chart
+            const materialCounts = {};
+            activities.forEach(activity => {
+                materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
+            });
+            materialChart.data.labels = Object.keys(materialCounts);
+            materialChart.data.datasets[0].data = Object.values(materialCounts);
+            materialChart.update();
+
+            // Update words learned chart
+            const sortedActivities = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date));
+            let cumulativeWords = 0;
+            const wordData = sortedActivities.map(activity => {
+                cumulativeWords += parseInt(activity.newWords);
+                return cumulativeWords;
+            });
+            wordsChart.data.labels = sortedActivities.map(activity => activity.date);
+            wordsChart.data.datasets[0].data = wordData;
+            wordsChart.update();
+        }
+
+        function generateWeeklyReport() {
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            const weekActivities = activities.filter(activity => 
+                new Date(activity.date) >= oneWeekAgo && new Date(activity.date) <= now
+            );
+
+            const totalMinutes = weekActivities.reduce((sum, activity) => sum + parseInt(activity.minutes), 0);
+            const totalWords = weekActivities.reduce((sum, activity) => sum + parseInt(activity.newWords), 0);
+            
+            const levelCounts = {
+                'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
+            };
+            weekActivities.forEach(activity => levelCounts[activity.level]++);
+
+            const report = `Swedish Learning Weekly Report
+${now.toLocaleDateString()}
+
+Summary:
+- Total study time: ${totalMinutes} minutes
+- New words learned: ${totalWords}
+
+Materials by CEFR Level:
+${Object.entries(levelCounts)
+    .filter(([_, count]) => count > 0)
+    .map(([level, count]) => `- ${level}: ${count} materials`)
+    .join('\n')}
+
+Material Types:
+${Object.entries(weekActivities.reduce((acc, activity) => {
+    acc[activity.material] = (acc[activity.material] || 0) + 1;
+    return acc;
+}, {})).map(([type, count]) => `- ${type}: ${count}`).join('\n')}
+`;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `swedish-learning-report-${now.toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Form submission
+        document.getElementById('activityForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newActivity = {
+                date: document.getElementById('date').value,
+                material: document.getElementById('material').value,
+                level: document.getElementById('level').value,
+                minutes: document.getElementById('minutes').value,
+                newWords: document.getElementById('newWords').value
+            };
+            activities.push(newActivity);
+            updateCharts();
+            e.target.reset();
+        });
+
+        // Save data
+        document.getElementById('saveData').addEventListener('click', () => {
+            const dataStr = JSON.stringify(activities);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'swedish-learning-data.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        // Load data
+        document.getElementById('loadData').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    activities = JSON.parse(e.target.result);
+                    updateCharts();
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Generate weekly report
+        document.getElementById('generateReport').addEventListener('click', generateWeeklyReport);
+    </script>
+</body>
+</html>
