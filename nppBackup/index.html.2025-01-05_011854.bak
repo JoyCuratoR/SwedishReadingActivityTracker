@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<!-- Previous head and style sections remain the same -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swedish Learning Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
-        /* All previous styles remain exactly the same */
         :root {
             --primary: #f8c4c4;
             --secondary: #c4e7f8;
@@ -123,19 +122,11 @@
                 <div class="form-group">
                     <label for="material">Material Type</label>
                     <select id="material" required>
-                        <optgroup label="Text-based">
-                            <option value="story">Short Story</option>
-                            <option value="book">Book</option>
-                            <option value="article">Article</option>
-                            <option value="flashcards">Flashcards</option>
-                        </optgroup>
-                        <optgroup label="Audio/Visual">
-                            <option value="show">TV Show</option>
-                            <option value="movie">Movie</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="podcast">Podcast</option>
-                            <option value="lyrics">Song Lyrics</option>
-                        </optgroup>
+                        <option value="story">Short Story</option>
+                        <option value="show">TV Show</option>
+                        <option value="lyrics">Song Lyrics</option>
+                        <option value="article">Article</option>
+                        <option value="book">Book</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -161,7 +152,6 @@
             </form>
         </div>
 
-        <!-- Previous button group div remains the same -->
         <div class="button-group">
             <button id="saveData" class="btn-secondary">Save Data</button>
             <button id="loadData" class="btn-secondary">Load Data</button>
@@ -183,7 +173,6 @@
     </div>
 
     <script>
-        // Previous activities array and colors object remain the same
         let activities = [];
         const colors = {
             pastel: [
@@ -192,20 +181,9 @@
                 'rgba(144, 238, 144, 0.6)', // light green
                 'rgba(221, 160, 221, 0.6)', // plum
                 'rgba(255, 218, 185, 0.6)', // peach
-                'rgba(255, 218, 185, 0.6)', // peach
-                'rgba(176, 196, 222, 0.6)', // light steel blue
-                'rgba(221, 160, 221, 0.6)', // plum
-                'rgba(152, 251, 152, 0.6)', // pale green
             ]
         };
 
-        // Updated material categories for grouping in reports
-        const materialCategories = {
-            textBased: ['story', 'book', 'article', 'flashcards'],
-            audioVisual: ['show', 'movie', 'youtube', 'podcast', 'lyrics']
-        };
-
-        // Previous chart configurations with updated colors array
         const levelChart = new Chart(
             document.getElementById('levelChart'),
             {
@@ -248,14 +226,6 @@
                         title: {
                             display: true,
                             text: 'Material Types Distribution'
-                        },
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                font: {
-                                    size: 11
-                                }
-                            }
                         }
                     }
                 }
@@ -291,7 +261,6 @@
             }
         );
 
-        // Previous updateCharts function with categorized material reporting
         function updateCharts() {
             // Update CEFR level chart
             const levelCounts = {
@@ -303,7 +272,7 @@
             levelChart.data.datasets[0].data = Object.values(levelCounts);
             levelChart.update();
 
-            // Update material type chart with all possible materials
+            // Update material type chart
             const materialCounts = {};
             activities.forEach(activity => {
                 materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
@@ -324,7 +293,6 @@
             wordsChart.update();
         }
 
-        // Updated generateWeeklyReport function with categorized reporting
         function generateWeeklyReport() {
             const now = new Date();
             const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -341,19 +309,6 @@
             };
             weekActivities.forEach(activity => levelCounts[activity.level]++);
 
-            // Group materials by category
-            const materialsByCategory = {
-                'Text-based Materials': {},
-                'Audio/Visual Materials': {}
-            };
-
-            weekActivities.forEach(activity => {
-                const category = materialCategories.textBased.includes(activity.material) 
-                    ? 'Text-based Materials'
-                    : 'Audio/Visual Materials';
-                materialsByCategory[category][activity.material] = (materialsByCategory[category][activity.material] || 0) + 1;
-            });
-
             const report = `Swedish Learning Weekly Report
 ${now.toLocaleDateString()}
 
@@ -368,15 +323,10 @@ ${Object.entries(levelCounts)
     .join('\n')}
 
 Material Types:
-Text-based Materials:
-${Object.entries(materialsByCategory['Text-based Materials'])
-    .map(([type, count]) => `- ${type}: ${count}`)
-    .join('\n')}
-
-Audio/Visual Materials:
-${Object.entries(materialsByCategory['Audio/Visual Materials'])
-    .map(([type, count]) => `- ${type}: ${count}`)
-    .join('\n')}
+${Object.entries(weekActivities.reduce((acc, activity) => {
+    acc[activity.material] = (acc[activity.material] || 0) + 1;
+    return acc;
+}, {})).map(([type, count]) => `- ${type}: ${count}`).join('\n')}
 `;
 
             const blob = new Blob([report], { type: 'text/plain' });
@@ -390,7 +340,7 @@ ${Object.entries(materialsByCategory['Audio/Visual Materials'])
             URL.revokeObjectURL(url);
         }
 
-        // Previous event listeners remain the same
+        // Form submission
         document.getElementById('activityForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const newActivity = {
@@ -405,6 +355,7 @@ ${Object.entries(materialsByCategory['Audio/Visual Materials'])
             e.target.reset();
         });
 
+        // Save data
         document.getElementById('saveData').addEventListener('click', () => {
             const dataStr = JSON.stringify(activities);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -418,6 +369,7 @@ ${Object.entries(materialsByCategory['Audio/Visual Materials'])
             URL.revokeObjectURL(url);
         });
 
+        // Load data
         document.getElementById('loadData').addEventListener('click', () => {
             document.getElementById('fileInput').click();
         });
@@ -434,6 +386,7 @@ ${Object.entries(materialsByCategory['Audio/Visual Materials'])
             }
         });
 
+        // Generate weekly report
         document.getElementById('generateReport').addEventListener('click', generateWeeklyReport);
     </script>
 </body>
