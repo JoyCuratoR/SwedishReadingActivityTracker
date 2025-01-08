@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- Previous head and style sections remain the same -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swedish Learning Tracker</title>
+    <title>Swedish Learning Activity Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
+        /* All previous styles remain exactly the same */
         :root {
             --primary: #f8c4c4;
             --secondary: #c4e7f8;
@@ -156,14 +157,11 @@
                     <label for="newWords">New Words Learned</label>
                     <input type="number" id="newWords" min="0" required>
                 </div>
-                <div class="form-group">
-                    <label for="wordsReviewed">Words Reviewed</label>
-                    <input type="number" id="wordsReviewed" min="0" required>
-                </div>
                 <button type="submit">Add Activity</button>
             </form>
         </div>
 
+        <!-- Previous button group div remains the same -->
         <div class="button-group">
             <button id="saveData" class="btn-secondary">Save Data</button>
             <button id="loadData" class="btn-secondary">Load Data</button>
@@ -181,13 +179,11 @@
             <div class="chart-container">
                 <canvas id="wordsChart"></canvas>
             </div>
-            <div class="chart-container">
-                <canvas id="reviewedWordsChart"></canvas>
-            </div>
         </div>
     </div>
 
     <script>
+        // Previous activities array and colors object remain the same
         let activities = [];
         const colors = {
             pastel: [
@@ -196,18 +192,20 @@
                 'rgba(144, 238, 144, 0.6)', // light green
                 'rgba(221, 160, 221, 0.6)', // plum
                 'rgba(255, 218, 185, 0.6)', // peach
+                'rgba(255, 218, 185, 0.6)', // peach
                 'rgba(176, 196, 222, 0.6)', // light steel blue
                 'rgba(221, 160, 221, 0.6)', // plum
                 'rgba(152, 251, 152, 0.6)', // pale green
-                'rgba(255, 218, 185, 0.6)', // peach
             ]
         };
 
+        // Updated material categories for grouping in reports
         const materialCategories = {
             textBased: ['story', 'book', 'article', 'flashcards'],
             audioVisual: ['show', 'movie', 'youtube', 'podcast', 'lyrics']
         };
 
+        // Previous chart configurations with updated colors array
         const levelChart = new Chart(
             document.getElementById('levelChart'),
             {
@@ -293,35 +291,7 @@
             }
         );
 
-        const reviewedWordsChart = new Chart(
-            document.getElementById('reviewedWordsChart'),
-            {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Words Reviewed',
-                        data: [],
-                        borderColor: colors.pastel[3],
-                        tension: 0.1,
-                        fill: true,
-                        backgroundColor: colors.pastel[3]
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cumulative Words Reviewed'
-                            }
-                        }
-                    }
-                }
-            }
-        );
-
+        // Previous updateCharts function with categorized material reporting
         function updateCharts() {
             // Update CEFR level chart
             const levelCounts = {
@@ -333,7 +303,7 @@
             levelChart.data.datasets[0].data = Object.values(levelCounts);
             levelChart.update();
 
-            // Update material type chart
+            // Update material type chart with all possible materials
             const materialCounts = {};
             activities.forEach(activity => {
                 materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
@@ -352,18 +322,9 @@
             wordsChart.data.labels = sortedActivities.map(activity => activity.date);
             wordsChart.data.datasets[0].data = wordData;
             wordsChart.update();
-
-            // Update words reviewed chart
-            let cumulativeReviewed = 0;
-            const reviewedData = sortedActivities.map(activity => {
-                cumulativeReviewed += parseInt(activity.wordsReviewed || 0);
-                return cumulativeReviewed;
-            });
-            reviewedWordsChart.data.labels = sortedActivities.map(activity => activity.date);
-            reviewedWordsChart.data.datasets[0].data = reviewedData;
-            reviewedWordsChart.update();
         }
 
+        // Updated generateWeeklyReport function with categorized reporting
         function generateWeeklyReport() {
             const now = new Date();
             const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -374,13 +335,13 @@
 
             const totalMinutes = weekActivities.reduce((sum, activity) => sum + parseInt(activity.minutes), 0);
             const totalWords = weekActivities.reduce((sum, activity) => sum + parseInt(activity.newWords), 0);
-            const totalReviewed = weekActivities.reduce((sum, activity) => sum + parseInt(activity.wordsReviewed || 0), 0);
             
             const levelCounts = {
                 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
             };
             weekActivities.forEach(activity => levelCounts[activity.level]++);
 
+            // Group materials by category
             const materialsByCategory = {
                 'Text-based Materials': {},
                 'Audio/Visual Materials': {}
@@ -399,7 +360,6 @@ ${now.toLocaleDateString()}
 Summary:
 - Total study time: ${totalMinutes} minutes
 - New words learned: ${totalWords}
-- Words reviewed: ${totalReviewed}
 
 Materials by CEFR Level:
 ${Object.entries(levelCounts)
