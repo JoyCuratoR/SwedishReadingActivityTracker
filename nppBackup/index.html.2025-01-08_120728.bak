@@ -127,7 +127,6 @@
                             <option value="book">Book</option>
                             <option value="article">Article</option>
                             <option value="flashcards">Flashcards</option>
-							<option value="social-media">Social Media</option>
                         </optgroup>
                         <optgroup label="Audio/Visual">
                             <option value="show">TV Show</option>
@@ -200,13 +199,12 @@
                 'rgba(176, 196, 222, 0.6)', // light steel blue
                 'rgba(221, 160, 221, 0.6)', // plum
                 'rgba(152, 251, 152, 0.6)', // pale green
-				'rgba(255, 192, 203, 0.6)', // pink for social media
-                'rgba(176, 224, 230, 0.6)', // powder blue
+                'rgba(255, 218, 185, 0.6)', // peach
             ]
         };
 
         const materialCategories = {
-            textBased: ['story', 'book', 'article', 'flashcards', 'social-media'],
+            textBased: ['story', 'book', 'article', 'flashcards'],
             audioVisual: ['show', 'movie', 'youtube', 'podcast', 'lyrics']
         };
 
