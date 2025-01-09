@@ -325,94 +325,83 @@
         );
 
         function updateCharts() {
-    // Update CEFR level chart
-    const levelCounts = {
-        'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
-    };
-    activities.forEach(activity => {
-        levelCounts[activity.level]++;
-    });
-    levelChart.data.datasets[0].data = Object.values(levelCounts);
-    levelChart.update();
+            // Update CEFR level chart
+            const levelCounts = {
+                'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
+            };
+            activities.forEach(activity => {
+                levelCounts[activity.level]++;
+            });
+            levelChart.data.datasets[0].data = Object.values(levelCounts);
+            levelChart.update();
 
-    // Update material type chart
-    const materialCounts = {};
-    activities.forEach(activity => {
-        materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
-    });
-    materialChart.data.labels = Object.keys(materialCounts);
-    materialChart.data.datasets[0].data = Object.values(materialCounts);
-    materialChart.update();
+            // Update material type chart
+            const materialCounts = {};
+            activities.forEach(activity => {
+                materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
+            });
+            materialChart.data.labels = Object.keys(materialCounts);
+            materialChart.data.datasets[0].data = Object.values(materialCounts);
+            materialChart.update();
 
-    // Sort activities by date for timeline charts
-    const sortedActivities = [...activities].sort((a, b) => 
-        new Date(a.date) - new Date(b.date)
-    );
-    const dates = sortedActivities.map(activity => activity.date);
+            // Update words learned chart
+            const sortedActivities = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date));
+            let cumulativeWords = 0;
+            const wordData = sortedActivities.map(activity => {
+                cumulativeWords += parseInt(activity.newWords);
+                return cumulativeWords;
+            });
+            wordsChart.data.labels = sortedActivities.map(activity => activity.date);
+            wordsChart.data.datasets[0].data = wordData;
+            wordsChart.update();
 
-    // Update new words learned chart
-    let cumulativeWords = 0;
-    const wordData = sortedActivities.map(activity => {
-        cumulativeWords += parseInt(activity.newWords);
-        return cumulativeWords;
-    });
-    wordsChart.data.labels = dates;
-    wordsChart.data.datasets[0].data = wordData;
-    wordsChart.update();
-
-    // Update words reviewed chart - separate calculation
-    let cumulativeReviewed = 0;
-    const reviewedData = sortedActivities.map(activity => {
-        cumulativeReviewed += parseInt(activity.wordsReviewed);
-        return cumulativeReviewed;
-    });
-    reviewedWordsChart.data.labels = dates;
-    reviewedWordsChart.data.datasets[0].data = reviewedData;
-    reviewedWordsChart.update();
-}
+            // Update words reviewed chart
+            let cumulativeReviewed = 0;
+            const reviewedData = sortedActivities.map(activity => {
+                cumulativeReviewed += parseInt(activity.wordsReviewed || 0);
+                return cumulativeReviewed;
+            });
+            reviewedWordsChart.data.labels = sortedActivities.map(activity => activity.date);
+            reviewedWordsChart.data.datasets[0].data = reviewedData;
+            reviewedWordsChart.update();
+        }
 
         function generateWeeklyReport() {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
-    const weekActivities = activities.filter(activity => 
-        new Date(activity.date) >= oneWeekAgo && new Date(activity.date) <= now
-    );
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            const weekActivities = activities.filter(activity => 
+                new Date(activity.date) >= oneWeekAgo && new Date(activity.date) <= now
+            );
 
-    // Calculate totals with explicit number conversion
-    const totalMinutes = weekActivities.reduce((sum, activity) => 
-        sum + parseInt(activity.minutes), 0);
-    const totalNewWords = weekActivities.reduce((sum, activity) => 
-        sum + parseInt(activity.newWords), 0);
-    const totalReviewedWords = weekActivities.reduce((sum, activity) => 
-        sum + parseInt(activity.wordsReviewed), 0);
-    
-    const levelCounts = {
-        'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
-    };
-    weekActivities.forEach(activity => levelCounts[activity.level]++);
+            const totalMinutes = weekActivities.reduce((sum, activity) => sum + parseInt(activity.minutes), 0);
+            const totalWords = weekActivities.reduce((sum, activity) => sum + parseInt(activity.newWords), 0);
+            const totalReviewed = weekActivities.reduce((sum, activity) => sum + parseInt(activity.wordsReviewed || 0), 0);
+            
+            const levelCounts = {
+                'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
+            };
+            weekActivities.forEach(activity => levelCounts[activity.level]++);
 
-    // Group materials by category
-    const materialsByCategory = {
-        'Text-based Materials': {},
-        'Audio/Visual Materials': {}
-    };
+            const materialsByCategory = {
+                'Text-based Materials': {},
+                'Audio/Visual Materials': {}
+            };
 
-    weekActivities.forEach(activity => {
-        const category = materialCategories.textBased.includes(activity.material) 
-            ? 'Text-based Materials'
-            : 'Audio/Visual Materials';
-        materialsByCategory[category][activity.material] = 
-            (materialsByCategory[category][activity.material] || 0) + 1;
-    });
+            weekActivities.forEach(activity => {
+                const category = materialCategories.textBased.includes(activity.material) 
+                    ? 'Text-based Materials'
+                    : 'Audio/Visual Materials';
+                materialsByCategory[category][activity.material] = (materialsByCategory[category][activity.material] || 0) + 1;
+            });
 
-    const report = `Swedish Learning Weekly Report
+            const report = `Swedish Learning Weekly Report
 ${now.toLocaleDateString()}
 
 Summary:
 - Total study time: ${totalMinutes} minutes
-- New words learned: ${totalNewWords}
-- Words reviewed: ${totalReviewedWords}
+- New words learned: ${totalWords}
+- Words reviewed: ${totalReviewed}
 
 Materials by CEFR Level:
 ${Object.entries(levelCounts)
@@ -430,22 +419,18 @@ Audio/Visual Materials:
 ${Object.entries(materialsByCategory['Audio/Visual Materials'])
     .map(([type, count]) => `- ${type}: ${count}`)
     .join('\n')}
-
-Learning Progress:
-- Average new words per activity: ${(totalNewWords / weekActivities.length).toFixed(1)}
-- Average words reviewed per activity: ${(totalReviewedWords / weekActivities.length).toFixed(1)}
 `;
 
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `swedish-learning-report-${now.toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `swedish-learning-report-${now.toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
         // Previous event listeners remain the same
         document.getElementById('activityForm').addEventListener('submit', (e) => {
