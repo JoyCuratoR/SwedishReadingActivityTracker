@@ -455,11 +455,8 @@ Learning Progress:
                 material: document.getElementById('material').value,
                 level: document.getElementById('level').value,
                 minutes: document.getElementById('minutes').value,
-                newWords: document.getElementById('newWords').value,
-				wordsReviewed: document.getElementById('wordsReviewed').value
+                newWords: document.getElementById('newWords').value
             };
-			// Log the activity to verify data capture
-			console.log('New activity added:', newActivity);
             activities.push(newActivity);
             updateCharts();
             e.target.reset();
