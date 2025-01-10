@@ -353,29 +353,19 @@
             // Update new words learned chart - cumulative calculation
             let cumulativeWords = 0;
             const wordData = sortedActivities.map(activity => {
-                cumulativeWords += Number(activity.newWords || 0);
+                cumulativeWords += Number(activity.newWords);
                 return cumulativeWords;
             });
             wordsChart.data.labels = dates;
             wordsChart.data.datasets[0].data = wordData;
             wordsChart.update();
 
-            // Update words reviewed chart - cumulative calculation with null handling
+            // Update words reviewed chart - cumulative calculation
             let cumulativeReviewed = 0;
             const reviewedData = sortedActivities.map(activity => {
-                // Handle missing wordsReviewed property by defaulting to 0
-                const reviewed = activity.wordsReviewed !== undefined ? Number(activity.wordsReviewed) : 0;
-                cumulativeReviewed += reviewed;
+                cumulativeReviewed += Number(activity.wordsReviewed);
                 return cumulativeReviewed;
             });
-            
-            // Debug logging
-            console.log('Reviewed Data Points:', reviewedData);
-            console.log('Activities with reviewed words:', sortedActivities.map(a => ({
-                date: a.date,
-                reviewed: a.wordsReviewed
-            })));
-
             reviewedWordsChart.data.labels = dates;
             reviewedWordsChart.data.datasets[0].data = reviewedData;
             reviewedWordsChart.update();
@@ -496,11 +486,6 @@ Learning Progress:
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     activities = JSON.parse(e.target.result);
-                    // Add wordsReviewed property if missing
-                    activities = activities.map(activity => ({
-                        ...activity,
-                        wordsReviewed: activity.wordsReviewed || 0
-                    }));
                     updateCharts();
                 };
                 reader.readAsText(file);
