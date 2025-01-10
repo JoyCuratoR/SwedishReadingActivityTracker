@@ -325,51 +325,51 @@
         );
 
         function updateCharts() {
-            // Update CEFR level chart
-            const levelCounts = {
-                'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
-            };
-            activities.forEach(activity => {
-                levelCounts[activity.level]++;
-            });
-            levelChart.data.datasets[0].data = Object.values(levelCounts);
-            levelChart.update();
+    // Update CEFR level chart
+    const levelCounts = {
+        'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'C1': 0, 'C2': 0
+    };
+    activities.forEach(activity => {
+        levelCounts[activity.level]++;
+    });
+    levelChart.data.datasets[0].data = Object.values(levelCounts);
+    levelChart.update();
 
-            // Update material type chart
-            const materialCounts = {};
-            activities.forEach(activity => {
-                materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
-            });
-            materialChart.data.labels = Object.keys(materialCounts);
-            materialChart.data.datasets[0].data = Object.values(materialCounts);
-            materialChart.update();
+    // Update material type chart
+    const materialCounts = {};
+    activities.forEach(activity => {
+        materialCounts[activity.material] = (materialCounts[activity.material] || 0) + 1;
+    });
+    materialChart.data.labels = Object.keys(materialCounts);
+    materialChart.data.datasets[0].data = Object.values(materialCounts);
+    materialChart.update();
 
-            // Sort activities by date for timeline charts
-            const sortedActivities = [...activities].sort((a, b) => 
-                new Date(a.date) - new Date(b.date)
-            );
-            const dates = sortedActivities.map(activity => activity.date);
+    // Sort activities by date for timeline charts
+    const sortedActivities = [...activities].sort((a, b) => 
+        new Date(a.date) - new Date(b.date)
+    );
+    const dates = sortedActivities.map(activity => activity.date);
 
-            // Update new words learned chart - cumulative calculation
-            let cumulativeWords = 0;
-            const wordData = sortedActivities.map(activity => {
-                cumulativeWords += Number(activity.newWords);
-                return cumulativeWords;
-            });
-            wordsChart.data.labels = dates;
-            wordsChart.data.datasets[0].data = wordData;
-            wordsChart.update();
+    // Update new words learned chart
+    let cumulativeWords = 0;
+    const wordData = sortedActivities.map(activity => {
+        cumulativeWords += parseInt(activity.newWords);
+        return cumulativeWords;
+    });
+    wordsChart.data.labels = dates;
+    wordsChart.data.datasets[0].data = wordData;
+    wordsChart.update();
 
-            // Update words reviewed chart - cumulative calculation
-            let cumulativeReviewed = 0;
-            const reviewedData = sortedActivities.map(activity => {
-                cumulativeReviewed += Number(activity.wordsReviewed);
-                return cumulativeReviewed;
-            });
-            reviewedWordsChart.data.labels = dates;
-            reviewedWordsChart.data.datasets[0].data = reviewedData;
-            reviewedWordsChart.update();
-        }
+    // Update words reviewed chart - separate calculation
+    let cumulativeReviewed = 0;
+    const reviewedData = sortedActivities.map(activity => {
+        cumulativeReviewed += parseInt(activity.wordsReviewed);
+        return cumulativeReviewed;
+    });
+    reviewedWordsChart.data.labels = dates;
+    reviewedWordsChart.data.datasets[0].data = reviewedData;
+    reviewedWordsChart.update();
+}
 
         function generateWeeklyReport() {
     const now = new Date();
@@ -447,7 +447,7 @@ Learning Progress:
     URL.revokeObjectURL(url);
 }
 
-        // Event listener for form submission
+        // Previous event listeners remain the same
         document.getElementById('activityForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const newActivity = {
@@ -456,8 +456,10 @@ Learning Progress:
                 level: document.getElementById('level').value,
                 minutes: document.getElementById('minutes').value,
                 newWords: document.getElementById('newWords').value,
-                wordsReviewed: document.getElementById('wordsReviewed').value // Ensure this is captured
+				wordsReviewed: document.getElementById('wordsReviewed').value
             };
+			// Log the activity to verify data capture
+			console.log('New activity added:', newActivity);
             activities.push(newActivity);
             updateCharts();
             e.target.reset();
